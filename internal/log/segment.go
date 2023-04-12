@@ -10,16 +10,16 @@ import (
 )
 
 type segment struct {
-	store                 *store
-	index                 *index
-	bseOffset, nextOffset uint64
-	config                Config
+	store                  *store
+	index                  *index
+	baseOffset, nextOffset uint64
+	config                 Config
 }
 
 func newSegment(dir string, baseOffset uint64, c Config) (*segment, error) {
 	s := &segment{
-		bseOffset: baseOffset,
-		config:    c,
+		baseOffset: baseOffset,
+		config:     c,
 	}
 	var err error
 	storeFile, err := os.OpenFile(
@@ -65,7 +65,7 @@ func (s *segment) Append(record *api.Record) (offset uint64, err error) {
 	}
 	if err = s.index.Write(
 		// index offsets are relative to base offset
-		uint32(s.nextOffset-uint64(s.bseOffset)),
+		uint32(s.nextOffset-uint64(s.baseOffset)),
 		pos,
 	); err != nil {
 		return 0, err
@@ -75,7 +75,7 @@ func (s *segment) Append(record *api.Record) (offset uint64, err error) {
 }
 
 func (s *segment) Read(off uint64) (*api.Record, error) {
-	_, pos, err := s.index.Read(int64(off - s.bseOffset))
+	_, pos, err := s.index.Read(int64(off - s.baseOffset))
 	if err != nil {
 		return nil, err
 	}
