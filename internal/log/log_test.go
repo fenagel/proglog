@@ -11,7 +11,9 @@ import (
 )
 
 func TestLog(t *testing.T) {
-	for scenario, fn := range map[string]func(t *testing.T, log *Log){
+	for scenario, fn := range map[string]func(
+		t *testing.T, log *Log,
+	){
 		"append and read a record succeeds": testAppendRead,
 		"offset out of range error":         testOutOfRangeErr,
 		"init with existing segments":       testInitExisting,
@@ -22,6 +24,7 @@ func TestLog(t *testing.T) {
 			dir, err := ioutil.TempDir("", "store-test")
 			require.NoError(t, err)
 			defer os.RemoveAll(dir)
+
 			c := Config{}
 			c.Segment.MaxStoreBytes = 32
 			log, err := NewLog(dir, c)
@@ -39,6 +42,7 @@ func testAppendRead(t *testing.T, log *Log) {
 	off, err := log.Append(append)
 	require.NoError(t, err)
 	require.Equal(t, uint64(0), off)
+
 	read, err := log.Read(off)
 	require.NoError(t, err)
 	require.Equal(t, append.Value, read.Value)
@@ -54,7 +58,6 @@ func testInitExisting(t *testing.T, o *Log) {
 	append := &api.Record{
 		Value: []byte("hello world"),
 	}
-
 	for i := 0; i < 3; i++ {
 		_, err := o.Append(append)
 		require.NoError(t, err)

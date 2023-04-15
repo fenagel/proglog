@@ -15,6 +15,7 @@ func TestSegment(t *testing.T) {
 	defer os.RemoveAll(dir)
 
 	want := &api.Record{Value: []byte("hello world")}
+
 	c := Config{}
 	c.Segment.MaxStoreBytes = 1024
 	c.Segment.MaxIndexBytes = entWidth * 3
@@ -36,6 +37,7 @@ func TestSegment(t *testing.T) {
 
 	_, err = s.Append(want)
 	require.Equal(t, io.EOF, err)
+
 	// maxed index
 	require.True(t, s.IsMaxed())
 

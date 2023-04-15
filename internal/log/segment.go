@@ -23,7 +23,7 @@ func newSegment(dir string, baseOffset uint64, c Config) (*segment, error) {
 	}
 	var err error
 	storeFile, err := os.OpenFile(
-		path.Join(dir, fmt.Sprintf("%d.%s", baseOffset, ".store")),
+		path.Join(dir, fmt.Sprintf("%d%s", baseOffset, ".store")),
 		os.O_RDWR|os.O_CREATE|os.O_APPEND,
 		0644,
 	)
@@ -34,7 +34,7 @@ func newSegment(dir string, baseOffset uint64, c Config) (*segment, error) {
 		return nil, err
 	}
 	indexFile, err := os.OpenFile(
-		path.Join(dir, fmt.Sprintf("%d.%s", baseOffset, ".index")),
+		path.Join(dir, fmt.Sprintf("%d%s", baseOffset, ".index")),
 		os.O_RDWR|os.O_CREATE,
 		0644,
 	)
@@ -93,6 +93,16 @@ func (s *segment) IsMaxed() bool {
 		s.index.size >= s.config.Segment.MaxIndexBytes
 }
 
+func (s *segment) Close() error {
+	if err := s.index.Close(); err != nil {
+		return err
+	}
+	if err := s.store.Close(); err != nil {
+		return err
+	}
+	return nil
+}
+
 func (s *segment) Remove() error {
 	if err := s.Close(); err != nil {
 		return err
@@ -106,19 +116,10 @@ func (s *segment) Remove() error {
 	return nil
 }
 
-func (s *segment) Close() error {
-	if err := s.index.Close(); err != nil {
-		return err
-	}
-	if err := s.store.Close(); err != nil {
-		return err
-	}
-	return nil
-}
-
 func nearestMultiple(j, k uint64) uint64 {
-	if j > 0 {
+	if j >= 0 {
 		return (j / k) * k
 	}
 	return ((j - k + 1) / k) * k
+
 }
